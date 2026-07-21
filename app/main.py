@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from scalar_fastapi import get_scalar_api_reference
 from sqlalchemy.orm import Session
 
+from sqlalchemy import text
+
 from app.database import get_db, engine
 from app.models import Base, Order, Item
 
@@ -48,8 +50,13 @@ def order_to_dict(order: Order) -> dict:
 
 
 @app.get("/health", tags=["health"])
-def health():
-    return {"status": "ok"}
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        db_status = "unavailable"
+    return {"status": "ok" if db_status == "ok" else "degraded", "database": db_status}
 
 
 @app.post("/orders", status_code=status.HTTP_201_CREATED, tags=["orders"])
