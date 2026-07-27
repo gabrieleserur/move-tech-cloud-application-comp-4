@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        app: cloud-application
+        app: cloud-application    
     spec:
       imagePullSecrets:
       - name: registry-secret
@@ -49,8 +49,26 @@ metadata:
 spec:
   selector:
     app: cloud-application
-  type: LoadBalancer
+  type: ClusterIP
   ports:
   - port: 80
     targetPort: 8000
     protocol: TCP
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-application
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cloud-application
+            port:
+              number: 80
